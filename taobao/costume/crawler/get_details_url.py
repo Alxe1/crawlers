@@ -166,7 +166,7 @@ def main():
     # 2. 获取详情索引页源代码
     page_source = get_goods_infos(driver, keys)
     # 3. 解析源代码，获取详情url
-    details = get_details(driver, page_source)
+    details = get_details(page_source)
     logger.info(details)
     # 4. 插入mongodb
     # save_to_mongo(collection, goods_url_list)
