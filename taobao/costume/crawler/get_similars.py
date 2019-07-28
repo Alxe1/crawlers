@@ -37,19 +37,31 @@ def get_similar_goods_details(driver, page_source):
     similar_urls = [url.a.get("href") for url in similars]
 
     for similar_url in similar_urls:
-        js = 'window.open("{}");'.format("https://s.taobao.com" + similar_url)
-        driver.execute_script(js)
-        # 跳转到相似商品页面
-        handles = driver.window_handles
-        logger.info(handles)
-        driver.switch_to.window(handles[1])
+        try:
 
-        for i in range(100):
-            logger.info("第{}页".format(i+1))
-            swipe_down(driver, 2)
-            try:
-                if EC.element_to_be_clickable((By.LINK_TEXT, "下一页")):
-                    wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "下一页"))).click()
+            js = 'window.open("{}");'.format("https://s.taobao.com" + similar_url)
+            driver.execute_script(js)
+            # 跳转到相似商品页面
+            handles = driver.window_handles
+            logger.info(handles)
+            driver.switch_to.window(handles[1])
+
+            for i in range(100):
+                logger.info("第{}页".format(i+1))
+                swipe_down(driver, 2)
+                try:
+                    if EC.element_to_be_clickable((By.LINK_TEXT, "下一页")):
+                        wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "下一页"))).click()
+                        page_source = driver.page_source
+                        soup = BeautifulSoup(page_source, "lxml")
+                        prices = [price.text[1:] for price in soup.find_all("div", class_="info2__price")]
+                        logger.info(prices)
+                        n_paid = [paid.text.strip()[:-3] for paid in soup.find_all("div", class_="info3__npaid")]
+                        logger.info(n_paid)
+                        similars_price.extend(prices)
+                        similars_paid.extend(n_paid)
+                        time.sleep(1)
+                except TimeoutException:
                     page_source = driver.page_source
                     soup = BeautifulSoup(page_source, "lxml")
                     prices = [price.text[1:] for price in soup.find_all("div", class_="info2__price")]
@@ -59,28 +71,20 @@ def get_similar_goods_details(driver, page_source):
                     similars_price.extend(prices)
                     similars_paid.extend(n_paid)
                     time.sleep(1)
-            except TimeoutException:
-                page_source = driver.page_source
-                soup = BeautifulSoup(page_source, "lxml")
-                prices = [price.text[1:] for price in soup.find_all("div", class_="info2__price")]
-                logger.info(prices)
-                n_paid = [paid.text.strip()[:-3] for paid in soup.find_all("div", class_="info3__npaid")]
-                logger.info(n_paid)
-                similars_price.extend(prices)
-                similars_paid.extend(n_paid)
-                time.sleep(1)
-                break
-            except Exception as e:
-                logger.info(e, "没有获取到相同商品信息")
-                break
+                    break
+                except Exception as e:
+                    logger.info(e, "没有获取到相同商品信息")
+                    break
 
-        save_to_mongo(collection,
-                      {"similar_prices": similars_price,
-                       "similar_paids": similars_paid,
-                       "similar_urls": "https://s.taobao.com" + similar_url})
+            save_to_mongo(collection,
+                          {"similar_prices": similars_price,
+                           "similar_paids": similars_paid,
+                           "similar_urls": "https://s.taobao.com" + similar_url})
 
-        driver.close()
-        driver.switch_to.window(handles[0])
+            driver.close()
+            driver.switch_to.window(handles[0])
+        except:
+            continue
 
 
 def main(url="https://www.taobao.com", keys="表演服"):
