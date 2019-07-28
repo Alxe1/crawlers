@@ -87,10 +87,9 @@ def get_goods_infos(driver, keys):
     return details
 
 
-def get_details(driver, page_source):
+def get_details(page_source):
     """
     获取结果列表[商品url, 商品名称, 商品图片, 商品价格, 商品成交量, 店铺名称, 店铺地点]
-    :param driver:
     :param page_source:
     :return:
     """
