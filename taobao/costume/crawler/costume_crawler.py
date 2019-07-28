@@ -28,7 +28,7 @@ res = get_redis()
 redis_name = "taobao:costume:"
 
 
-def crawler(url="http:www.taobao.com", keys="表演服"):
+def crawler(url="https://www.taobao.com", keys="表演服"):
     start_time = time.time()
     logger.info("数据爬取开始")
     options = webdriver.ChromeOptions()
