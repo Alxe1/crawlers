@@ -3,7 +3,7 @@
 # @File    : log_util.py
 # @Software: PyCharm
 # Desc     :
-import logging  # 引入logging模块
+import logging
 import logging.handlers
 import functools
 import taobao.utils.time_roting_handler as time_roting_handler
@@ -13,7 +13,7 @@ def get_logger():
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)  # Log等级总开关
     if not logger.handlers:
-        log_path = r"/mam/Logs/P6_plug-in"  # 240服务器日志路径
+        log_path = r"/crawler/Logs/taobao/costume"
         logfile = log_path
         # 按照日期做日志分割
         # TODO 目前日志切分没有实现，需要后续调试。
