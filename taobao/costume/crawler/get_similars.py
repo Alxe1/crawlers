@@ -38,7 +38,6 @@ def get_similar_goods_details(driver, page_source):
 
     for similar_url in similar_urls:
         try:
-
             js = 'window.open("{}");'.format("https://s.taobao.com" + similar_url)
             driver.execute_script(js)
             # 跳转到相似商品页面
