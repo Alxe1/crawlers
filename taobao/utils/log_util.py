@@ -6,7 +6,7 @@
 import logging  # 引入logging模块
 import logging.handlers
 import functools
-import com.chargerlink.time_roting_handler as time_roting_handler
+import taobao.utils.time_roting_handler as time_roting_handler
 
 
 def get_logger():

@@ -11,11 +11,14 @@ from itertools import zip_longest
 from bs4 import BeautifulSoup
 from urllib import request
 from selenium import webdriver
+from taobao.utils.log_util import get_logger
+
+logger = get_logger()
 
 
 def login(driver, url, cookies="cookies_tao.json"):
     if os.path.exists(os.path.join(os.getcwd(), cookies)):  # 如果不是第一次登陆，则使用cookie登陆
-        print("自动登录")
+        logger.info("自动登录")
         driver.get(url)
         # 删除第一次登录是储存到本地的cookie
         driver.delete_all_cookies()
@@ -34,7 +37,7 @@ def login(driver, url, cookies="cookies_tao.json"):
         driver.get(url)
         time.sleep(3)
     else:  # 如果第一次登陆，则手动登陆
-        print("请手动登陆")
+        logger.info("请手动登陆")
         driver.get(url)
         driver.find_element_by_class_name("h").click()
         # 手动扫码登录
@@ -47,7 +50,7 @@ def login(driver, url, cookies="cookies_tao.json"):
                 fp.write(json_cookies)
             # 跳转新的页面
             handles = driver.window_handles
-            print(handles)
+            logger.info(handles)
             driver.switch_to.window(handles[0])
 
 
@@ -84,9 +87,10 @@ def get_goods_infos(driver, keys):
     return details
 
 
-def get_details(page_source):
+def get_details(driver, page_source):
     """
     获取结果列表[商品url, 商品名称, 商品图片, 商品价格, 商品成交量, 店铺名称, 店铺地点]
+    :param driver:
     :param page_source:
     :return:
     """
@@ -103,39 +107,39 @@ def get_details(page_source):
             if os.path.exists(name):
                 name += str(append_str)
                 append_str += 1
-                print("保存图片：{}".format(name + ".png"))
+                logger.info("保存图片：{}".format(name + ".png"))
                 request.urlretrieve(pic,images_dir + os.sep + name + ".png")
             else:
-                print("保存图片：{}".format(name + ".png"))
+                logger.info("保存图片：{}".format(name + ".png"))
                 request.urlretrieve(pic, images_dir + os.sep + name + ".png")
     except FileNotFoundError as e:
-        print(e, "保存文件出错")
+        logger.info(e, "保存文件出错")
     except Exception as e:
-        print(e)
+        logger.info(e)
 
     try:
         target_list = soup.find_all("div", class_="price g_price g_price-highlight")
         goods_prices = [target.text.strip()[1:] for target in target_list]  # 商品价格
     except:
-        print("没有获取到该页面的价格")
+        logger.info("没有获取到该页面的价格")
         goods_prices = []
     try:
         target_list = soup.find_all("div", class_="deal-cnt")
         goods_deal_vols = [re.search(r'(\d+)', target.text, re.S).group(1) for target in target_list]  # 商品成交量
     except:
-        print("没有获取到该页面的成交量")
+        logger.info("没有获取到该页面的成交量")
         goods_deal_vols = []
     try:
         target_list = soup.find_all("a", class_="shopname J_MouseEneterLeave J_ShopInfo")
         shop_names = [target.text.strip() for target in target_list]  # 店铺名称
     except:
-        print("没有获取到该页面的店铺名称")
+        logger.info("没有获取到该页面的店铺名称")
         shop_names = []
     try:
         target_list = soup.find_all("div", class_="item J_MouserOnverReq")
         shop_locations = [target.findNext("div", class_="location").text for target in target_list]  # 店铺地点
     except:
-        print("没有获取到该页面的店铺地点")
+        logger.info("没有获取到该页面的店铺地点")
         shop_locations = []
 
     for goods_url, goods_name, goods_price, goods_deal_vol, shop_name, shop_location in \
@@ -163,8 +167,8 @@ def main():
     # 2. 获取详情索引页源代码
     page_source = get_goods_infos(driver, keys)
     # 3. 解析源代码，获取详情url
-    details = get_details(page_source)
-    print(details)
+    details = get_details(driver, page_source)
+    logger.info(details)
     # 4. 插入mongodb
     # save_to_mongo(collection, goods_url_list)
     get_page(driver, 3)

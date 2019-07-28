@@ -28,3 +28,15 @@ def save_to_mongo(collection, value):
                 collection.insert(value)
         except Exception as e:
             print(e)
+
+
+@retry(retry_on_exception=retry_if_auto_reconnect_error, stop_max_attempt_number=3, wait_fixed=3000)
+def update_mongo(collection, condition, value):
+    """
+    update
+    :param collection: 要操作的doc
+    :param condition: 更新的查询条件
+    :param value: 更新值，字典形式
+    :return:
+    """
+    collection.update_one(condition, {"$set": value})

@@ -15,7 +15,10 @@ from selenium.webdriver.support import expected_conditions as EC
 from taobao.costume.crawler.get_details_url import login, get_page, swipe_down, get_details
 from taobao.utils.mongo_connection import get_mongo, save_to_mongo
 from taobao.utils.redis_connection import get_redis
+from taobao.utils.log_util import get_logger
 
+
+logger = get_logger()
 
 mongo_client = get_mongo()
 crawler_db = mongo_client.crawler_db
@@ -27,7 +30,7 @@ redis_name = "taobao:costume:"
 
 def crawler(url="http:www.taobao.com", keys="表演服"):
     start_time = time.time()
-    print("数据爬取开始")
+    logger.info("数据爬取开始")
     options = webdriver.ChromeOptions()
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     driver = webdriver.Chrome(options=options)
@@ -49,17 +52,17 @@ def crawler(url="http:www.taobao.com", keys="表演服"):
             get_page(driver, page)
             sleep = random.uniform(10, 20)
             time.sleep(sleep)  # 翻页后睡眠时间
-        print("正在获取第{}页的商品信息".format(page))
+        logger.info("正在获取第{}页的商品信息".format(page))
         # 3. 滑动滚动条
         time.sleep(2)
         swipe_down(driver, 2)
         # 4. 读取源代码
         page_source = driver.page_source
-        goods_infos = get_details(page_source=page_source)
+        goods_infos = get_details(driver, page_source=page_source)
         for goods_info in goods_infos:
             save_to_mongo(collection, goods_info)
             res.set(redis_name+goods_info["goods_name"], 1)
-    print("数据爬取结束：{}".format(time.time() - start_time))
+    logger.info("数据爬取结束：{}".format(time.time() - start_time))
 
 
 def get_goods_comments(driver):
