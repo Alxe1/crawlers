@@ -58,7 +58,7 @@ def crawler(url="https://www.taobao.com", keys="表演服"):
         swipe_down(driver, 2)
         # 4. 读取源代码
         page_source = driver.page_source
-        goods_infos = get_details(driver, page_source=page_source)
+        goods_infos = get_details(page_source=page_source)
         for goods_info in goods_infos:
             save_to_mongo(collection, goods_info)
             res.set(redis_name+goods_info["goods_name"], 1)
